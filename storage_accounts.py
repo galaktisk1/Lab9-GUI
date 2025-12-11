@@ -1,26 +1,16 @@
 """
 storage_accounts.py
-
-Loads accounts from a CSV file and saves them back to a CSV file.
-Works together with BankService, which holds the actual Account objects.
-
-The CSV format uses three columns:
-    name, account_type, balance
-
-Account types are written as "ACCOUNT" or "SAVINGS".
 """
 
 import csv
-from accounts_model import Account, SavingAccount
+from accounts_model import SavingAccount
 from bank_service import BankService
 
-
-def load_accounts_from_csv(file_path, service):
+def load_accounts_from_csv(file_path: str, service: BankService) -> None:
     """
     Load accounts from a CSV file and add them to the BankService.
-
-    - If the file does not exist, nothing happens.
-    - Bad rows are skipped silently.
+    If the file does not exist, nothing happens.
+    Bad rows are skipped silently.
     """
     try:
         f = open(file_path, "r", newline="")
@@ -28,32 +18,34 @@ def load_accounts_from_csv(file_path, service):
         return
 
     with f:
-        reader = csv.DictReader(f)
+        reader = csv.reader(f)
+        next(reader, None)  # Skip header row
         for row in reader:
-            name = (row.get("name") or "").strip()
-            acct_type = (row.get("account_type") or "").strip()
-            balance_text = (row.get("balance") or "0").strip()
-
-            if name == "":
+            if len(row) != 3:
                 continue
-
+            name: str
+            acct_type: str
+            balance_str: str
+            name, acct_type, balance_str = row
             try:
-                balance = float(balance_text)
+                balance: float = float(balance_str)
             except ValueError:
                 continue
 
-            if acct_type.upper() == "SAVINGS":
-                service.create_account(name, True, balance)
+            if acct_type == "SAVINGS":
+                is_savings = True
+            elif acct_type == "CHECKING":
+                is_savings = False
             else:
-                service.create_account(name, False, balance)
+                continue
 
+            service.create_account(name, is_savings, balance)
 
-def save_accounts_to_csv(file_path, service):
+def save_accounts_to_csv(file_path: str, service: BankService) -> None:
     """
-    Write all accounts from the BankService into a CSV file.
-
-    - Overwrites any existing file.
-    - Fails silently if the file cannot be written.
+    Write all accounts from the BankService into a csv file.
+    Overwrites any existing file.
+    Fails silently if the file cannot be written.
     """
     try:
         f = open(file_path, "w", newline="")
@@ -61,18 +53,9 @@ def save_accounts_to_csv(file_path, service):
         return
 
     with f:
-        fieldnames = ["name", "account_type", "balance"]
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-
-        for account in service.get_all_accounts():
-            if isinstance(account, SavingAccount):
-                acct_type = "SAVINGS"
-            else:
-                acct_type = "ACCOUNT"
-
-            writer.writerow({
-                "name": account.get_name(),
-                "account_type": acct_type,
-                "balance": "%.2f" % account.get_balance()
-            })
+        writer = csv.writer(f)
+        writer.writerow(["name", "account_type", "balance"])
+        accounts = service.get_all_accounts()
+        for account in accounts:
+            acct_type: str = "SAVINGS" if isinstance(account, SavingAccount) else "CHECKING"
+            writer.writerow([account.get_name(), acct_type, f"{account.get_balance():.2f}"])

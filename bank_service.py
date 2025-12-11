@@ -1,16 +1,8 @@
 """
 bank_service.py
-
-Simple manager for all accounts used by the GUI program. This module keeps
-a list of Account and SavingAccount objects, provides a way to create new
-accounts, and can calculate the total money stored at the bank.
-
-The GUI layer and the file storage layer use this class to work with
-accounts without needing to manage the list themselves.
 """
 
 from accounts_model import Account, SavingAccount
-
 
 class BankService:
     def __init__(self) -> None:
@@ -20,11 +12,11 @@ class BankService:
     def create_account(self, name: str, is_savings: bool, initial_balance: float = 0.0) -> Account:
         """
         Create an Account or SavingAccount, add it to the list, and return it.
-
-        name:            account holder's name
-        is_savings:      True for SavingAccount, False for regular Account
+        
+        name: account holder's name
+        is_savings: True for SavingAccount, False for regular Account
         initial_balance: starting balance for the account
-
+        
         Saving accounts always respect their minimum balance.
         """
         if is_savings:
@@ -39,16 +31,12 @@ class BankService:
         return account
 
     def get_all_accounts(self) -> list[Account]:
-        """
-        Return the list of all accounts managed by this BankService.
-        """
+        """Return the list of all accounts managed by this BankService."""
         return self._accounts
 
     def get_bank_total(self) -> float:
-        """
-        Return the total balance of all accounts combined.
-        """
+        """Return the total balance of all accounts combined."""
         total = 0.0
         for account in self._accounts:
             total += account.get_balance()
-        return total
+        return total 

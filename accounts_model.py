@@ -1,14 +1,10 @@
 """
 accounts_model.py
-Defines the Account and SavingAccount classes used by the banking application.
 """
-
 
 class Account:
     """
     A basic bank account with deposit and withdrawal functionality.
-
-    Attributes:
         _account_name (str): Name of the account owner.
         _account_balance (float): Current account balance.
     """
